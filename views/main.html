@@ -131,6 +131,16 @@
               </span>
               <span>Connect</span>
             </button>
+            
+
+            <button type="button" class="button is-danger is-small" 
+              v-on:click="openConnection"
+              v-bind:class="{'is-loading': init.fetching}">
+              <span class="icon is-small">
+                <i class="fa fa-floppy-o"></i>
+              </span>
+              <span>Save as</span>
+            </button>
             </div>
           </div>
 

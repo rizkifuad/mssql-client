@@ -297,12 +297,13 @@ new Vue({
       }
 
       var search = this.search.toLowerCase().trim()
-      var regex = new RegExp("^.*"+search+".*$","g");
+      var regex = new RegExp(".*"+search+".*$","i");
 
 
       var conns = this.savedConnections.filter( (conn, id) => {
         return regex.test(conn.name.toLowerCase())
       })
+      console.log(conns.length)
 
       return conns
     },

@@ -1,0 +1,5 @@
+go get github.com/jinzhu/gorm
+go get github.com/denisenkom/go-mssqldb
+go get github.com/gorilla/mux
+go get github.com/gorilla/securecookie
+go get github.com/gorilla/schema

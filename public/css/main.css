@@ -1,0 +1,66 @@
+.container-table {
+  overflow-x: scroll;
+}
+
+body {
+  font-size: 0.8rem;
+}
+.panel-block {
+  font-size:0.9rem;
+}
+
+.new-connection {
+  background: url("/img/vim-go.png");
+  min-height: 500px;
+  background-repeat: no-repeat;
+  background-position:80% 80%;
+}
+
+.tabs-header {
+  margin-top:40px;
+}
+
+.tabs li a.no-padding-tab {
+  padding: 0;
+}
+
+li .col-tab {
+  max-width: 150px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  padding: 0.5em 0 0.5em 0.5em;
+}
+
+li #tab-last, li #tab-last:hover {
+  background-color: #042560;
+  height: 30px;
+  border-bottom:none;
+  padding-left: 0.3em;
+  padding-right: 0.3em;
+}
+
+li.is-active .col-tab {
+  max-width:inherit;
+}
+
+.btn-close-connection {
+  margin-right:10px;
+}
+.multiselect__select {
+  height: 28px;
+}
+
+.multiselect__tags {
+  min-height: 20px;
+  padding: 4px 40px 0 8px;
+}
+.multiselect__input, .multiselect__single {
+  line-height: 10px;
+  min-height:15px;
+  font-size:12px;
+}
+.multiselect, .multiselect__input, .multiselect__single {
+  font-size:12px;
+}
+

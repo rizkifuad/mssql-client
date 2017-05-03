@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>Go MSSQL Client</title>
+    <link href="data:image/x-icon;base64,AAABAAEAEBAAAAAAAABoBQAAFgAAACgAAAAQAAAAIAAAAAEACAAAAAAAAAEAAAAAAAAAAAAAAAEAAAAAAAAAAAAAntj7AP///wB3wPoA8vn/AESw+AAvnfgAPqr4AM/r/QDK5/0ASrX4AJLT+wAzoPgAVsD4AC6c+ABUvvgAlc/7AFC6+ADN6v0ARav4ADil+ADM6P0AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA4ODg4ODg4ODg4AAAAAAA4ODg4ODg4ODg4ODgAAAA4ODg4ODg4ODg4ODg4OAAAGBgYGBgYGBgYGBgYGBgAADAICAgIDDAwCAgICDAwAABQCCRQQAhMUAhQUAgIUAAAHAhUHBwIEBwIHBwICBwAABQISBQUCAgUCAgICBQUAAAoCCAoKAgsKAgoKAgEKAAARAgICAgIREQICAgIREQAADw8PDw8PDw8PDw8PDw8AAA0NDQ0NDQ0NDQ0NDQ0NAAAADQ0NDQ0NDQ0NDQ0NAAAAAAANDQ0NDQ0NDQ0NAAAAAAAAAAAAAAAAAAAAAAAAAP//AADgBwAAwAMAAIABAACAAQAAgAEAAIABAACAAQAAgAEAAIABAACAAQAAgAEAAIABAADAAwAA4AcAAP//AAA=" rel="icon" type="image/x-icon" />
+    <link rel="stylesheet" href="css/bulma.css" type="text/css" media="screen" title="no title" charset="utf-8">
+    <link rel="stylesheet" href="libs/font-awesome/css/font-awesome.min.css" type="text/css" media="screen" title="no title" charset="utf-8">
+    <link rel="stylesheet" href="libs/vue-multiselect/vue-multiselect.min.css" type="text/css" media="screen" title="no title" charset="utf-8">
+    <link rel="stylesheet" href="css/main.css" type="text/css" media="screen" title="no title" charset="utf-8">
+  </head>
+  <body>
+    <div id="root">
+      <section class="hero is-info is-bold">
+        <div class="hero-foot">
+          <div class="container">
+            <nav class="tabs is-boxed is-small tabs-header">
+              <ul>
+                <li v-for="(con, id) in activeConnections" v-bind:class="{'is-active': currentTab === id}">
+                  <a class="no-padding-tab">
+                    <div class="col-tab" v-on:click="changeTab(id)">
+                      <span class="icon is-small" ><i class="fa fa-database"></i></span>
+                      <span class=>${ con.name } - ${ con.database }</span>
+                    </div>
+                    &nbsp;
+                    &nbsp;
+                    <button class="delete is-small btn-close-connection" v-on:click="closeConnection(id)"></button>
+                  </a>
+                </li>
+                <li >
+                  <a id="tab-last" v-on:click="addConnection">
+                    <span class="icon is-small"><i class="fa fa-plus"></i></span>
+                  </a>
+                </li>
+              </ul>
+            </nav></div>
+        </div>
+      </section>
+
+      <section class="section new-connection" v-if="active.status === 'init'">
+        <div class="container">
+
+          <div class="columns">
+            <div class="column is-one-quarter">
+              <nav class="panel">
+                <p class="panel-heading">
+                <span class="icon is-left">
+                  <i class="fa fa-bolt"></i>
+                </span>
+                QUICK CONNECT
+                </p>
+                <div class="panel-block">
+                  <p class="control has-icons-left" v-if="savedConnections && savedConnections.length > 0">
+                  <input class="input is-small" type="text" placeholder="Search" v-model="search">
+                  <span class="icon is-small is-left">
+                    <i class="fa fa-search"></i>
+                  </span>
+                  </p>
+                </div>
+                <a class="panel-block" v-for="(conn, id) in filteredSavedConnections" 
+                  v-bind:class="{'is-active': init && init.id === conn.id}" v-on:click="selectConnection(id)">
+                  <span class="panel-icon">
+                    <i class="fa fa-database"></i>
+                  </span>
+                  ${conn.name}
+                </a>
+              </nav>
+            </div>
+
+            <div class="column is-one-third">
+              <div class="field">
+                <label class="label is-small">Name</label>
+                <p class="control">
+                <input v-model="init.id" type="hidden">
+                <input class="input is-small" type="text" v-model="init.name" placeholder="Connection name">
+                </p>
+              </div>
+
+              <div class="field">
+                <label class="label is-small">Server</label>
+                <div class="columns">
+                  <div class="column is-half">
+                    <input class="input is-small" type="text" v-model="init.server" placeholder="Database host">
+                  </div>
+                  <div class="column">
+                    <input class="input is-small" type="text" v-model="init.port" placeholder="Database host">
+                  </div>
+                </div>
+              </div>
+
+              <div class="field">
+                <label class="label is-small">User</label>
+                <p class="control">
+                <input class="input is-small" type="text" v-model="init.user" placeholder="Database user">
+                </p>
+              </div>
+
+              <div class="field">
+                <label class="label is-small">Password</label>
+                <p class="control">
+                <input class="input is-small" type="password" v-model="init.password" placeholder="Database password">
+                </p>
+              </div>
+
+              <div class="field">
+                <label class="label is-small">Database</label>
+                <p class="control">
+                <multiselect
+                  v-model="init.database"
+                  :max-height="500"
+                  :options="parsedInitDatabases">
+                </multiselect>
+                </p>
+              </div>
+
+            <button type="button" class="button is-info is-small" 
+              v-on:click="saveConnection"
+              v-bind:class="{'is-loading': init.fetching}">
+              <span class="icon is-small">
+                <i class="fa fa-bookmark"></i>
+              </span>
+              <span>Save</span>
+            </button>
+
+            <button type="button" class="button is-primary is-small" 
+              v-on:click="openConnection"
+              v-bind:class="{'is-loading': init.fetching}">
+              <span class="icon is-small">
+                <i class="fa fa-plug"></i>
+              </span>
+              <span>Connect</span>
+            </button>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <section class="section" v-if="active.status !== 'init'">
+        <div class="container">
+          <div class="level-right">
+            <div class="field" v-if="active.status !== 'init'">
+              <label class="label is-small">Databases</label>
+              <p class="control">
+
+                <multiselect
+                  @input="changeDatabase"
+                  v-model="active.database"
+                  select-label=""
+                  deselect-label=""
+                  :max-height="500"
+                  :options="parsedActiveDatabases">
+                </multiselect>
+              </p>
+            </div>
+          </div>
+          <br>
+          <form id="form-query-input" @submit.prevent="onQuery">
+            <div class="field">
+              <p class="control">
+              <textarea name="query" class="textarea is-small" placeholder="Query.." v-model="active.query"></textarea>
+              </p>
+            </div>
+            <button type="submit" class="button is-info is-small" v-bind:class="{'is-loading': active.fetching}">
+              <span class="icon is-small">
+                <i class="fa fa-rocket"></i>
+              </span>
+              <span>Run</span>
+            </button>
+            <button type="submit" class="button is-small" v-if="active.fetching === true">
+              <span class="icon is-small">
+                <i class="fa fa-remove"></i>
+              </span>
+              <span>Cancel</span>
+            </button>
+          </form>
+          <br/>
+
+          <div class="notification" v-bind:class="{'is-danger': active.error}" v-show="active.message">
+            ${ active.message }
+          </div>
+          <br/>
+
+          <a class="button is-primary is-small" 
+            v-if="active.message && active.rows && active.rows.length > 0" v-on:click="exportCSV">
+            <span class="icon is-small">
+              <i class="fa fa-file"></i>
+            </span>
+            <span>Export CSV</span>
+          </a>
+          <br/>
+          <br/>
+
+          <div class="container-table" v-if="active.rows && active.rows.length > 0">
+            <table class="table is-bordered is-striped is-narrow">
+              <tr>
+                <th v-for="field in active.cols">${ field }</th>
+              </tr>
+
+              <tr v-for="row in active.rows">
+                <td v-for="value in row">${ value }</td>
+              </tr>
+            </table>
+          </div>
+
+        </div>
+      </section>
+    </div>
+
+
+    <script src="js/axios.min.js"></script>
+    <script src="js/vue.js"></script>
+    <script src="libs/vue-multiselect/vue-multiselect.min.js"></script>
+    <script src="js/main.js"></script>
+  </body>
+</html>

@@ -59,7 +59,7 @@
                   </p>
                 </div>
                 <a class="panel-block" v-for="(conn, id) in filteredSavedConnections" 
-                  v-bind:class="{'is-active': init && init.id === conn.id}" v-on:click="selectConnection(id)">
+                  v-bind:class="{'is-active': init && init.id === conn.id}" v-on:click="selectConnection(conn)">
                   <span class="panel-icon">
                     <i class="fa fa-database"></i>
                   </span>
@@ -115,7 +115,7 @@
               </div>
 
             <button type="button" class="button is-info is-small" 
-              v-on:click="saveConnection"
+              v-on:click="updateConnection"
               v-bind:class="{'is-loading': init.fetching}">
               <span class="icon is-small">
                 <i class="fa fa-bookmark"></i>
@@ -134,7 +134,7 @@
             
 
             <button type="button" class="button is-danger is-small" 
-              v-on:click="openConnection"
+              v-on:click="createConnection"
               v-bind:class="{'is-loading': init.fetching}">
               <span class="icon is-small">
                 <i class="fa fa-floppy-o"></i>

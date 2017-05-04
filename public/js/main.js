@@ -200,27 +200,57 @@ new Vue({
       this.showModal = false
     },
 
-    selectConnection(id) {
-      this.init = this.savedConnections[id]
+    selectConnection(connection) {
+      this.init = Object.assign({}, connection)
     },
 
-    saveConnection() {
+    createConnection() {
+      var _init = Object.assign({}, this.init)
+      delete _init.databases
+
+      var create = axios({
+        method: "POSt",
+        url: "/api/create_connection",
+        data: parseUrlEncoded(_init),
+        headers: {"content-type": "application/x-www-form-urlencoded"}
+      })
+
+      create.then( (resp) => {
+        this.savedConnections = resp.data.data
+        this.init.id = this.savedConnections[this.savedConnections.length-1].id
+      })
+    },
+
+    updateConnection() {
+      var _init = Object.assign({}, this.init)
+      delete _init.databases
+
+      var update = axios({
+        method: "PUT",
+        url: "/api/update_connection",
+        data: parseUrlEncoded(_init),
+        headers: {"content-type": "application/x-www-form-urlencoded"}
+      })
+
+      update.then( (resp) => {
+
+      })
     },
 
     openConnection() {
-      var updated = ['server', 'port', 'user', 'password', 'database', 'name']
-      delete this.init.databases
+      var _init = Object.assign({}, this.init)
+      delete _init.databases
 
       var run = axios({
         method:"POST",
         url: "/api/add_connection",
-        data: parseUrlEncoded(this.init),
+        data: parseUrlEncoded(_init),
         headers: {"content-type": "application/x-www-form-urlencoded"}
       })
 
       run.then( (resp) => {
-        for (i in updated) {
-          this.activeConnections[this.currentTab][updated[i]] = this.init[updated[i]]
+        for (key in _init) {
+          this.activeConnections[this.currentTab][key] = _init[key]
         }
 
         this.activeConnections[this.currentTab].status = "connect"
@@ -240,7 +270,12 @@ new Vue({
     },
 
     closeConnection(id) {
-      this.activeConnections.splice(id, 1)
+      if (this.activeConnections[id].status==="init") {
+        this.activeConnections.splice(id, 1)
+        this.closeTab()
+        return
+      }
+
       var del = axios({
         method: "DELETE",
         url: "/api/disconnect",
@@ -251,26 +286,32 @@ new Vue({
       })
 
       del.then( (resp) => {
-        if (this.currentTab === id) {
-          if (this.activeConnections.length === 0) {
-            this.currentTab = 0
-            this.activeConnections[this.currentTab] = Object.assign({}, connectionTemplate)
-          } else {
-            if (this.activeConnections[this.currentTab-1]) {
-              this.currentTab = this.currentTab - 1
-            } else if (this.activeConnections[this.currentTab+1]) {
-              this.currentTab = this.currentTab + 1
-            }
-          }
+        this.activeConnections.splice(id, 1)
+        this.closeTab()
+      })
+        
+    },
+
+    closeTab() {
+      if (this.currentTab === id) {
+        if (this.activeConnections.length === 0) {
+          this.currentTab = 0
+          this.activeConnections[this.currentTab] = Object.assign({}, connectionTemplate)
         } else {
-          if (this.currentTab > id) {
+          if (this.activeConnections[this.currentTab-1]) {
             this.currentTab = this.currentTab - 1
+          } else if (this.activeConnections[this.currentTab+1]) {
+            this.currentTab = this.currentTab + 1
           }
         }
-        this.active = this.activeConnections[this.currentTab]
-      })
-
+      } else {
+        if (this.currentTab > id) {
+          this.currentTab = this.currentTab - 1
+        }
+      }
+      this.active = this.activeConnections[this.currentTab]
     },
+
 
     addConnection() {
       this.resetInit()

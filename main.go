@@ -40,9 +40,12 @@ func main() {
 	r.HandleFunc("/api/list_databases", apiListDatabases).Methods("GET")
 	r.HandleFunc("/api/change_database", apiChangeDatabases).Methods("POST")
 	r.HandleFunc("/api/add_connection", apiAddConnection).Methods("POST")
-	r.HandleFunc("/api/save_connection", apiSaveConnection).Methods("POST")
-	r.HandleFunc("/api/get_connections", apiGetConnections).Methods("GET")
 	r.HandleFunc("/api/disconnect", apiDisconnect).Methods("DELETE")
+
+	// Storage Operation
+	r.HandleFunc("/api/create_connection", apiCreateConnection).Methods("POST")
+	r.HandleFunc("/api/update_connection", apiUpdateConnection).Methods("PUT")
+	r.HandleFunc("/api/get_connections", apiGetConnections).Methods("GET")
 
 	r.HandleFunc("/css/{resource}", serveResource).Methods("GET")
 	r.HandleFunc("/img/{resource}", serveResource).Methods("GET")

@@ -171,7 +171,33 @@ func apiAddConnection(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func apiSaveConnection(w http.ResponseWriter, r *http.Request) {
+func apiCreateConnection(w http.ResponseWriter, r *http.Request) {
+	r.ParseForm()
+	connection := new(Connection)
+	err := decoder.Decode(connection, r.PostForm)
+	if err != nil {
+		renderError(w, err)
+		return
+	}
+	connection.ID = 0
+	storage.Create(connection)
+
+	var connections []Connection
+	storage.Find(&connections)
+	for id, connection := range connections {
+		var databases []ActiveDatabase
+		storage.Model(&connection).Related(&databases)
+
+		connections[id].Databases = databases
+	}
+
+	err = renderJSON(w, connections)
+	if err != nil {
+		log.Println(err.Error())
+	}
+}
+
+func apiUpdateConnection(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	connection := new(Connection)
 
@@ -180,7 +206,7 @@ func apiSaveConnection(w http.ResponseWriter, r *http.Request) {
 		renderError(w, err)
 		return
 	}
-	storage.Create(&connection)
+	storage.Save(&connection)
 
 	err = renderJSON(w, connection)
 	if err != nil {
